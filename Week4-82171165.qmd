@@ -1,22 +1,19 @@
 ---
-title: "Week4-82171165"
-author: "David Ewing"
-format: pdf
+title: "Week 4 - Imputation"
+author: "David Ewing (82171165)"
+date: "2024-08-05"
+output: pdf_document
 editor: visual
 ---
 
----
-title: "Week 4 - Imputation"
-author: "David Ewing"
-date: "2024-08-05"
-output: pdf_document
----
 ```{r setup}
 # libraries
 library(knitr)
 library(tidyverse)
 library(kableExtra)
-# Miktex console -> install tabu
+
+library(broom)
+library(mice)
 ```
 
 ## Introduciton - Imputation Tecnique 
@@ -45,10 +42,18 @@ The data is a provided csv file containing : "Referendum Survey Lab Version". Th
 # Load the data
 ```{r load-data}
 csv_file <- "data/referendum_survey_lab_version.csv"
-csv_data <- read_csv(csv_file)
+df_csv <- read_csv(csv_file)
 
 
 # display head
-head(csv_data)
+head(df_csv)
 ```
+
+```{r }
+df_missingness <- df_csv %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%                             # '.' is where pipe puts df_csv 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Missing_Count")
+
+```
+
 
