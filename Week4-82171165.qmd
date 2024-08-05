@@ -5,23 +5,50 @@ format: pdf
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
+---
+title: "Week 4 - Imputation"
+author: "David Ewing"
+date: "2024-08-05"
+output: pdf_document
+---
+```{r setup}
+# libraries
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+# Miktex console -> install tabu
 ```
 
-You can add options to executable code like this
+## Introduciton - Imputation Tecnique 
+Imputation is a common  Data Engineering Technique for cleaning up data. This report is the results of a lab that compares  accuracy of different imputation techniques.
 
-```{r}
-#| echo: false
-2 * 2
+A client representing the Green Party collected data about the Cannabis referendum in 2020. They wish to know from their data if it is worth pursuing a citizen initiated referendum in the next election cycle. However, they do not wish to undertake such a massive administrative task if the support is not there. Your task is to address the following:
+
+- What proportion of people in the sample supported legalisation?
+- Who in the sample supported legalisation?
+
+
+This report os organised as follows:
+
+- Table on missingness
+- Visualisation on demographics
+- Inline reporting of proportions
+- Tables of each logistic regression
+- A clear conclusion
+- Extra for experts for those game enough
+
+## Data 
+The data is a provided csv file containing : "Referendum Survey Lab Version". This CSV file containing survey responses with Age, Gender, and whether someone voted yes (1) or no (0) in the referendum. However, there was a considerable amount of missingness in the data. It is believed this is because some people, particularly younger people, were reluctant to give their voting preference.
+
+
+
+# Load the data
+```{r load-data}
+csv_file <- "data/referendum_survey_lab_version.csv"
+csv_data <- read_csv(csv_file)
+
+
+# display head
+head(csv_data)
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
