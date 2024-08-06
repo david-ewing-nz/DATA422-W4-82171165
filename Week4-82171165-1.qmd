@@ -4,6 +4,10 @@ author: "David Ewing (82171165)"
 date: "2024-08-05"
 format: pdf
 editor: visual
+header-includes:
+  - \usepackage{placeins}
+  - \usepackage{afterpage}
+---
 ---
 
 ```{r setup}
@@ -16,7 +20,10 @@ library(broom)
 library(mice)
 
 
-#tinytex::tinytex_root() #means of testing 
+
+
+
+#tinytex::tinytex_root()
 ```
 
 ## Introduciton - Imputation Tecnique
@@ -28,7 +35,7 @@ A client representing the Green Party collected data about the Cannabis referend
 -   What proportion of people in the sample supported legalisation?
 -   Who in the sample supported legalisation?
 
-This report is organised as follows:
+This report os organised as follows:
 
 -   Table on missingness
 -   Visualisation on demographics
@@ -51,14 +58,17 @@ df_csv <- read_csv(csv_file)
 head(df_csv)
 ```
 
-```{r }
+```{r table-does-not-split }
 df_missingness <- df_csv %>%
   summarise(across(everything(), ~ sum(is.na(.)))) %>%                             # '.' is where pipe puts df_csv 
-  pivot_longer(everything(), names_to = "Variable", values_to = "Missing_Count")
+  pivot_longer(everything(), names_to = "Variable", values_to = "Missing Count")
 
-# Display the missingness table
-kable(df_missingness,caption = "title") %>%
-  kable_styling(full_width = F)
+# Ensure table does not split across a page
+kable(df_missingness, caption = "Missingness", longtable = F) %>%
+  kable_styling(full_width = F, latex_options = c("hold_position", "scale_down"))
+
+# Add a page break after the table to ensure it stays on one page
+cat("\\afterpage{\\clearpage}")
 ```
 
 ```{r}
@@ -70,14 +80,27 @@ ggplot(df_csv, aes(x = age)) +
 
 ```
 
-```{r  include=FALSE, echo=FALSE}
+```{r include=FALSE, echo=FALSE}
 # Ensure the gender variable is present in the data
-if("gender" %in% colnames(df_missingness)) {
+if("gender" %in% colnames(df_csv)) {
   print("The 'gender' variable is present in the dataset.")
 } else {
   print("The 'gender' variable is not present in the dataset.")
-
-
-
 }
+```
+
+```{r include=TRUE, echo=FALSE}
+# proportion of ‘yes’ voters
+proportion_yes <- mean(df_csv$referendum, na.rm = TRUE)
+
+# Logistic regression for complete cases
+ref_model <- glm(referendum ~ age + gender, data = df_csv, family = binomial)
+ref_model_tidy <- tidy(ref_model)
+
+# Display logistic regression results
+kable(df_missingness,caption = "Missingness") %>%
+  kable_styling(full_width = F)
+
+kable(ref_model_tidy, caption = "logistic regression results") %>%
+  kable_styling(latex_options = c("striped", "hold_position", full_width = F))
 ```
