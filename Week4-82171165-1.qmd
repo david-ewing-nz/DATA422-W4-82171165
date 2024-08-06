@@ -46,7 +46,7 @@ This report os organised as follows:
 
 The data is a provided csv file containing : "Referendum Survey Lab Version". This CSV file containing survey responses with Age, Gender, and whether someone voted yes (1) or no (0) in the referendum. There was a considerable amount of missingness in the data. It is 
 believed this is because some people, particularly younger people, were reluctant to give their
-voting preference.
+voting preference. Table 1 shows the Missingness. The Age across Genders for the participants is shown in the graphic that follows. 
 
 
 ```{r load-data, echo=FALSE, message=FALSE, warning=FALSE}
