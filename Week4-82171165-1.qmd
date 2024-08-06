@@ -16,10 +16,7 @@ library(broom)
 library(mice)
 
 
-
-
-
-#tinytex::tinytex_root()
+#tinytex::tinytex_root() #means of testing 
 ```
 
 ## Introduciton - Imputation Tecnique
@@ -31,7 +28,7 @@ A client representing the Green Party collected data about the Cannabis referend
 -   What proportion of people in the sample supported legalisation?
 -   Who in the sample supported legalisation?
 
-This report os organised as follows:
+This report is organised as follows:
 
 -   Table on missingness
 -   Visualisation on demographics
@@ -73,7 +70,7 @@ ggplot(df_csv, aes(x = age)) +
 
 ```
 
-```{r}
+```{r  include=FALSE, echo=FALSE}
 # Ensure the gender variable is present in the data
 if("gender" %in% colnames(df_missingness)) {
   print("The 'gender' variable is present in the dataset.")
