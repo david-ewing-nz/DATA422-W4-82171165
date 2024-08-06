@@ -10,18 +10,16 @@ header-includes:
 ---
 ---
 
-```{r setup}
+```{r setup, echo=FALSE}
 # libraries
-library(knitr)
-library(tidyverse)
-library(kableExtra)
-
-library(broom)
-library(mice)
-
-
-
-
+suppressPackageStartupMessages({
+  library(knitr)
+  library(tidyverse)
+  library(kableExtra)
+  library(broom)
+  library(mice)
+  knitr::opts_chunk$set(echo = TRUE)
+})
 
 #tinytex::tinytex_root()
 ```
@@ -30,7 +28,7 @@ library(mice)
 
 Imputation is a common Data Engineering Technique for cleaning up data. This report is the results of a lab that compares accuracy of different imputation techniques.
 
-A client representing the Green Party collected data about the Cannabis referendum in 2020. They wish to know from their data if it is worth pursuing a citizen initiated referendum in the next election cycle. However, they do not wish to undertake such a massive administrative task if the support is not there. Your task is to address the following:
+A client representing the Green Party collected data about the Cannabis referendum in 2020. They wish to know from their data if it is worth pursuing a citizen initiated referendum in the next election cycle.This report is to address the following:
 
 -   What proportion of people in the sample supported legalisation?
 -   Who in the sample supported legalisation?
@@ -44,21 +42,24 @@ This report os organised as follows:
 -   A clear conclusion
 -   Extra for experts for those game enough
 
-## Data
+## Data (and Table on Missingness)
 
-The data is a provided csv file containing : "Referendum Survey Lab Version". This CSV file containing survey responses with Age, Gender, and whether someone voted yes (1) or no (0) in the referendum. However, there was a considerable amount of missingness in the data. It is believed this is because some people, particularly younger people, were reluctant to give their voting preference.
+The data is a provided csv file containing : "Referendum Survey Lab Version". This CSV file containing survey responses with Age, Gender, and whether someone voted yes (1) or no (0) in the referendum. There was a considerable amount of missingness in the data. It is 
+believed this is because some people, particularly younger people, were reluctant to give their
+voting preference. Table 1 shows the Missingness. The Age across Genders for the participants is shown in the graphic that follows. 
 
-# Table on missingness
 
-```{r load-data}
+```{r load-data, echo=FALSE, message=FALSE, warning=FALSE}
 csv_file <- "data/referendum_survey_lab_version.csv"
-df_csv <- read_csv(csv_file)
+
+#df_csv <- read_csv(csv_file)
+df_csv <- read_csv(csv_file, show_col_types = FALSE)
 
 # display head
-head(df_csv)
+#head(df_csv)
 ```
 
-```{r table-does-not-split }
+```{r table-does-not-split, echo=FALSE, message=FALSE, warning=FALSE }
 df_missingness <- df_csv %>%
   summarise(across(everything(), ~ sum(is.na(.)))) %>%                             # '.' is where pipe puts df_csv 
   pivot_longer(everything(), names_to = "Variable", values_to = "Missing Count")
@@ -67,16 +68,40 @@ df_missingness <- df_csv %>%
 kable(df_missingness, caption = "Missingness", longtable = F) %>%
   kable_styling(full_width = F, latex_options = c("hold_position", "scale_down"))
 
-# Add a page break after the table to ensure it stays on one page
-cat("\\afterpage{\\clearpage}")
+# Add a page break 
+#cat("\\afterpage{\\clearpage}")
 ```
+## Visualisation of Demographics
+```{r Demographics-Visualisation , echo=FALSE, message=FALSE, warning=TRUE }
+# Add a column with labels
+df_csv <- df_csv %>%
+  mutate(gender_label = recode(gender,
+                               "Female" = "A",
+                               "Male" = "B",
+                               "Genderqueer, neither exclusively male nor female" = "C",
+                               "Other (Please State)" = "D",
+                               "Transgender Female (Male to Female: MTF)" = "E",
+                               "Transgender Male (Female to Male; FTM)" = "F",
+                               "NA" = "G"))
 
-```{r}
-ggplot(df_csv, aes(x = age)) +
-    geom_histogram(binwidth = 5, position = "dodge") +
-    facet_wrap(~ gender) +
-    theme_minimal() +
-    labs(title = "Distribution of Age Across Genders", x = "Age", y = "Count")
+# get rid of NA in age 
+df_csv_filtered <- df_csv %>%
+  filter(!is.na(age))
+
+ggplot(df_csv_filtered, aes(x = age)) +
+  geom_histogram(binwidth = 5, position = "dodge") +
+  facet_wrap(~ gender_label) +
+  theme_minimal() +
+  labs(title = "Distribution of Age Across Genders", x = "Age", y = "Count")
+
+
+legend_data <- data.frame(
+  Label = c("A", "B", "C", "D", "E", "F", "G"),
+  Description = c("Female", "Male", "Genderqueer, neither exclusively male nor female", "Other (Please State)", "Transgender Female (Male to Female: MTF)", "Transgender Male (Female to Male; FTM)", "NA")
+)
+
+kable(legend_data, col.names = c("Label", "Description"), caption = "Gender Legend", longtable = F) %>%
+  kable_styling(full_width = F, position = "center", latex_options = c("hold_position"))
 
 ```
 
@@ -97,10 +122,16 @@ proportion_yes <- mean(df_csv$referendum, na.rm = TRUE)
 ref_model <- glm(referendum ~ age + gender, data = df_csv, family = binomial)
 ref_model_tidy <- tidy(ref_model)
 
-# Display logistic regression results
-kable(df_missingness,caption = "Missingness") %>%
-  kable_styling(full_width = F)
+# Rename terms
+ref_model_tidy$term <- c("(Intercept)", "Age", "Queer (Gender)", "Male", "Other (Gender)", "Transgender Female (MTF)", "Transgender Male (FTM)")
 
-kable(ref_model_tidy, caption = "logistic regression results") %>%
-  kable_styling(latex_options = c("striped", "hold_position", full_width = F))
+# Round logistic regression results to 2 decimal places
+ref_model_tidy <- ref_model_tidy %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2))) 
+
+# Display logistic regression results
+kable(ref_model_tidy, caption = "logistic regression results",longtable = F) %>%
+  kable_styling(full_width = F, latex_options = c("striped", "hold_position"))
+
+
 ```
