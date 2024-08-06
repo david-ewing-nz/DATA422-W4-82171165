@@ -1,0 +1,86 @@
+---
+title: "Week 4 - Imputation"
+author: "David Ewing (82171165)"
+date: "2024-08-05"
+format: pdf
+editor: visual
+---
+
+```{r setup}
+# libraries
+library(knitr)
+library(tidyverse)
+library(kableExtra)
+
+library(broom)
+library(mice)
+
+
+
+
+
+#tinytex::tinytex_root()
+```
+
+## Introduciton - Imputation Tecnique
+
+Imputation is a common Data Engineering Technique for cleaning up data. This report is the results of a lab that compares accuracy of different imputation techniques.
+
+A client representing the Green Party collected data about the Cannabis referendum in 2020. They wish to know from their data if it is worth pursuing a citizen initiated referendum in the next election cycle. However, they do not wish to undertake such a massive administrative task if the support is not there. Your task is to address the following:
+
+-   What proportion of people in the sample supported legalisation?
+-   Who in the sample supported legalisation?
+
+This report os organised as follows:
+
+-   Table on missingness
+-   Visualisation on demographics
+-   Inline reporting of proportions
+-   Tables of each logistic regression
+-   A clear conclusion
+-   Extra for experts for those game enough
+
+## Data
+
+The data is a provided csv file containing : "Referendum Survey Lab Version". This CSV file containing survey responses with Age, Gender, and whether someone voted yes (1) or no (0) in the referendum. However, there was a considerable amount of missingness in the data. It is believed this is because some people, particularly younger people, were reluctant to give their voting preference.
+
+# Table on missingness
+
+```{r load-data}
+csv_file <- "data/referendum_survey_lab_version.csv"
+df_csv <- read_csv(csv_file)
+
+# display head
+head(df_csv)
+```
+
+```{r }
+df_missingness <- df_csv %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%                             # '.' is where pipe puts df_csv 
+  pivot_longer(everything(), names_to = "Variable", values_to = "Missing_Count")
+
+# Display the missingness table
+kable(df_missingness,caption = "title") %>%
+  kable_styling(full_width = F)
+```
+
+```{r}
+ggplot(df_csv, aes(x = age)) +
+    geom_histogram(binwidth = 5, position = "dodge") +
+    facet_wrap(~ gender) +
+    theme_minimal() +
+    labs(title = "Distribution of Age Across Genders", x = "Age", y = "Count")
+
+```
+
+```{r}
+# Ensure the gender variable is present in the data
+if("gender" %in% colnames(df_missingness)) {
+  print("The 'gender' variable is present in the dataset.")
+} else {
+  print("The 'gender' variable is not present in the dataset.")
+
+
+
+}
+```
